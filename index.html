@@ -1,0 +1,160 @@
+
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chinnadurai Mart</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f3f7f3;color:#222}
+header{background:#087d42;color:white;padding:22px 12px;text-align:center}
+header h1{margin:0 0 8px}
+header p{margin:0}
+main{padding:14px;max-width:700px;margin:auto}
+h2{color:#087d42}
+#products{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.item,.cart{background:white;border-radius:12px;padding:14px;box-shadow:0 2px 8px #0001}
+.item{text-align:center}
+.pic{font-size:42px}
+.item h3{margin:8px 0}
+.price{color:#087d42;font-weight:bold;margin:8px}
+button{border:0;border-radius:8px;padding:11px;background:#087d42;color:white;font-size:15px;cursor:pointer}
+.item button{width:100%}
+.cart{margin-top:12px}
+.cartrow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid #eee}
+.small{padding:5px 10px}
+.remove{background:#c62828}
+#send{width:100%;background:#128c4a;font-weight:bold;margin-top:14px;padding:14px}
+#status{white-space:pre-wrap;overflow-wrap:anywhere}
+</style>
+</head>
+<body>
+<header>
+<h1>🛒 Chinnadurai Mart</h1>
+<p>உங்கள் மளிகைக் கடை | Grocery Shopping</p>
+</header>
+
+<main>
+<h2>Products / பொருட்கள்</h2>
+<div id="products"></div>
+
+<h2>🛍️ My Cart / என் கூடை</h2>
+<div class="cart">
+<div id="cartItems">இன்னும் பொருட்கள் சேர்க்கவில்லை.</div>
+<h3>Total / மொத்தம்: ₹<span id="total">0</span></h3>
+<button id="send" onclick="sendOrder()">WhatsApp-ல் Order அனுப்பு</button>
+<p id="status"></p>
+</div>
+</main>
+
+<script>
+const phone = "916381452250";
+
+const products = [
+ {id:1,name:"Rice / அரிசி",price:60,emoji:"🍚"},
+ {id:2,name:"Dal / பருப்பு",price:100,emoji:"🫘"},
+ {id:3,name:"Oil / எண்ணெய்",price:150,emoji:"🫗"},
+ {id:4,name:"Milk / பால்",price:30,emoji:"🥛"},
+ {id:5,name:"Sugar / சர்க்கரை",price:45,emoji:"🍚"},
+ {id:6,name:"Wheat / கோதுமை",price:50,emoji:"🌾"}
+];
+
+const cart = {};
+
+function showProducts(){
+ document.getElementById("products").innerHTML =
+ products.map(p => `
+ <div class="item">
+ <div class="pic">${p.emoji}</div>
+ <h3>${p.name}</h3>
+ <div class="price">₹${p.price}</div>
+ <button onclick="addItem(${p.id})">Add to Cart / சேர்</button>
+ </div>`).join("");
+}
+
+function addItem(id){
+ cart[id] = (cart[id] || 0) + 1;
+ showCart();
+}
+
+function changeQty(id,amount){
+ cart[id] = (cart[id] || 0) + amount;
+ if(cart[id] <= 0) delete cart[id];
+ showCart();
+}
+
+function showCart(){
+ let total = 0;
+ let count = 0;
+ let html = "";
+
+ products.forEach(p => {
+   const qty = cart[p.id] || 0;
+   if(qty > 0){
+     const subtotal = qty * p.price;
+     total += subtotal;
+     count += qty;
+     html += `
+     <div class="cartrow">
+       <div>${p.name}<br>₹${p.price} × ${qty} = ₹${subtotal}</div>
+       <div>
+         <button class="small" onclick="changeQty(${p.id},-1)">−</button>
+         <button class="small" onclick="changeQty(${p.id},1)">+</button>
+       </div>
+     </div>`;
+   }
+ });
+
+ document.getElementById("cartItems").innerHTML =
+   html || "இன்னும் பொருட்கள் சேர்க்கவில்லை.";
+ document.getElementById("total").textContent = total;
+ document.getElementById("send").textContent =
+   "WhatsApp-ல் Order அனுப்பு (" + count + ")";
+}
+
+function sendOrder(){
+ const selected = products.filter(p => (cart[p.id] || 0) > 0);
+
+ if(selected.length === 0){
+   document.getElementById("status").textContent =
+     "முதலில் பொருட்களை Cart-ல் சேர்க்கவும்.";
+   return;
+ }
+
+ let total = 0;
+ let message = "🛒 CHINNADURAI MART ORDER\n\n";
+
+ selected.forEach(p => {
+   const qty = cart[p.id];
+   const subtotal = p.price * qty;
+   total += subtotal;
+   message += p.name + " x " + qty + " = Rs. " + subtotal + "\n";
+ });
+
+ message += "\nTOTAL: Rs. " + total;
+ message += "\n\nPlease confirm my order.";
+
+ const url = "https://wa.me/" + phone +
+             "?text=" + encodeURIComponent(message);
+
+ document.getElementById("status").textContent =
+   "WhatsApp திறக்கிறது... திறக்கவில்லை என்றால் WhatsApp நிறுவப்பட்டுள்ளதா, இணைய இணைப்பு உள்ளதா எனச் சரிபார்க்கவும்.";
+
+ // Open WhatsApp using a direct link
+ window.location.href = url;
+}
+
+showProducts();
+showCart();
+</script>
+</body>
+</html>
+if (url.startsWith("http://") || url.startsWith("https://")) {
+    return false; // WebView-க்குள்ளேயே சாதாரணமாக திறக்கும்
+} else {
+    // வாட்ஸ்அப், மெயில் போன்ற பிற ஆப்ஸ்களை திறக்க Intent பயன்படுத்துதல்
+    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+    startActivity(intent);
+    return true;
+}
